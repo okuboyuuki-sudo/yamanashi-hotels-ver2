@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>山梨の宿リスト</title>
+<style>
+  /* 基本リセット */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    background-color: #f0f2f5;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", sans-serif;
+    color: #333;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 820px;
+    margin: 0 auto;
+    background-color: #f0f2f5;
+    min-height: 100vh;
+  }
+
+  header {
+    background-color: #f0f2f5;
+    color: #2d3748;
+    padding: 24px 20px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 0;
+  }
+
+  .sort-select {
+    padding: 10px 36px 10px 16px;
+    font-size: 15px;
+    color: #2d3748;
+    background-color: #ffffff;
+    border: 1px solid #a0aec0;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+  }
+
+  .list-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px; /* カード間の余白を少し広げる */
+  }
+
+  /* カード本体：高さを従来の約2倍（460px）に拡張 */
+  .card {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: row;
+    min-height: 460px; 
+    border: 1px solid #e1e4e8;
+  }
+
+  /* 左側（写真エリア）：幅を広げて大きく見せる */
+  .card-left {
+    width: 380px;
+    flex-shrink: 0; 
+    position: relative;
+    background-color: #e9ecef;
+  }
+
+  .card-left img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  .tag {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: rgba(231, 76, 60, 0.95);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10;
+  }
+
+  /* 右側（詳細エリア）：従来のセンターとライトを統合し、情報を豊富に */
+  .card-content {
+    flex-grow: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* ヘッダー部分（名前と評価） */
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .title-group {
+    flex-grow: 1;
+    padding-right: 16px;
+  }
+
+  .hotel-name {
+    font-size: 24px; /* 文字を大きく */
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-weight: bold;
+    line-height: 1.4;
+  }
+
+  .stars {
+    color: #f39c12;
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+
+  /* 評価バッジ */
+  .rating-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  .score-badge {
+    background-color: #2980b9;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+
+  .reviews {
+    font-size: 13px;
+    color: #7f8c8d;
+  }
+
+  /* 新設：宿のキャッチコピー・説明文 */
+  .description {
+    font-size: 15px;
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #edf2f7;
+  }
+
+  /* 既存のインフォリスト */
+  .info-list {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .info-item {
+    font-size: 14px;
+    color: #495057;
+    line-height: 1.5;
+    background: #f8f9fa;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border-left: 4px solid #ced4da;
+  }
+
+  .info-item.highlight {
+    border-left-color: #3498db;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+
+  /* 新設：設備アイコンリスト */
+  .amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .amenity-badge {
+    background-color: #edf2f7;
+    color: #4a5568;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* 下部エリア（時間と残り部屋数） */
+  .content-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .time-info {
+    font-size: 13px;
+    color: #718096;
+    line-height: 1.5;
+  }
+
+  .rooms-left {
+    background-color: #fdf2e9;
+    color: #d35400;
+    border: 1px solid #e67e22;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: bold;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>山梨の宿 厳選10軒</h1>
+    <select class="sort-select">
+      <option value="match">並び替え：おすすめ順</option>
+      <option value="rating">評価が高い順</option>
+      <option value="reviews">口コミが多い順</option>
+    </select>
+  </header>
+  
+  <div class="list-container" id="hotel-list">
+    <!-- JavaScriptで動的にカードを生成 -->
+  </div>
+</div>
+
+<script>
+  // 物件数を10件に絞り、説明文(desc)、設備(amenities)、時間(time)を追加
+  const hotels = [
+    { 
+      name: "庭園風呂の宿 翠峰閣", 
+      reviews: 342, rating: 4.2, rooms: 2, tag: "朝食無料", station: "緑水園駅 徒歩10分", point: "美しい日本庭園を眺めながら寛げる総檜の半露天風呂", 
+      desc: "四季折々の表情を見せる広大な日本庭園が自慢の純和風旅館。喧騒から離れた静寂の中で、心ゆくまで名湯をお楽しみいただけます。地元食材をふんだんに使用した懐石料理も好評です。",
+      amenities: ["♨️ 温泉", "📶 無料Wi-Fi", "🅿️ 駐車場無料", "🚭 全室禁煙"],
+      time: "チェックイン: 15:00〜<br>チェックアウト: 10:00",
+      img: "宿①.jpeg" 
+    },
+    { 
+      name: "ログキャビン 森林の風", 
+      reviews: 891, rating: 4.7, rooms: 1, tag: "キャンセル無料", station: "白樺の森駅 バス15分", point: "木の香りに包まれる本格ログハウスで大自然を満喫", 
+      desc: "カナダ産の極太ログ材を使用した本格派キャビン。木肌の温もりと薪ストーブの炎が、非日常のリラックスタイムを演出します。夜は満天の星空を独り占めできるウッドデッキが人気です。",
+      amenities: ["📶 無料Wi-Fi", "🍳 キッチン完備", "🍖 BBQ設備", "🐾 ペット可"],
+      time: "チェックイン: 14:00〜<br>チェックアウト: 11:00",
+      img: "宿②.jpeg" 
+    },
+    { 
+      name: "フォレストロッジ 木漏れ日", 
+      reviews: 156, rating: 3.8, rooms: 4, tag: "直前割引！20%OFF", station: "緑風林駅 徒歩5分", point: "森林浴を満喫できる木の温もりあふれるロッジ", 
+      desc: "澄んだ空気と鳥のさえずりで目覚める、自然豊かなロケーション。周辺にはハイキングコースが整備されており、アクティブに過ごした後は大浴場でゆったりと疲れを癒やせます。",
+      amenities: ["♨️ 大浴場", "📶 無料Wi-Fi", "🚲 レンタサイクル", "🅿️ 駐車場無料"],
+      time: "チェックイン: 15:00〜<br>チェックアウト: 10:00",
+      img: "宿③.jpeg" 
+    },
+    { 
+      name: "葡萄の丘ヴィラ", 
+      reviews: 412, rating: 4.5, rooms: 3, tag: "ウェルカムワイン付き", station: "ワインの郷駅 車で5分", point: "見渡す限りのブドウ畑に囲まれたリゾートヴィラ", 
+      desc: "山梨屈指のワイナリーに隣接する上質なヴィラ。一面のブドウ畑を見下ろす高台に位置し、テラスでワイングラスを傾けながら優雅なひとときをお過ごしいただけます。",
+      amenities: ["🍷 ワインセラー", "🍽 レストラン", "📶 無料Wi-Fi", "🚭 全室禁煙"],
+      time: "チェックイン: 15:00〜<br>チェックアウト: 12:00",
+      img: "宿④.jpeg" 
+    },
+    { 
+      name: "湯煙旅館 茜（あかね）", 
+      reviews: 620, rating: 4.1, rooms: 5, tag: "今すぐ予約！", station: "夕日ヶ丘温泉駅 徒歩3分", point: "レトロな和室と縁側で夕焼けを楽しむ温泉宿", 
+      desc: "昭和の面影を色濃く残す、どこか懐かしい佇まいの温泉旅館。自慢の源泉掛け流し風呂は肌に優しいと評判です。湯上がりは縁側で風鈴の音を聞きながら夕涼みをお楽しみください。",
+      amenities: ["♨️ 源泉掛け流し", "🍱 部屋食対応", "📶 無料Wi-Fi", "👘 浴衣貸出"],
+      time: "チェックイン: 14:00〜<br>チェックアウト: 10:00",
+      img: "宿⑤.jpeg" 
+    },
+    { 
+      name: "コンテナヴィラ フォレスト", 
+      reviews: 1204, rating: 4.0, rooms: 2, tag: "クーポン適用可", station: "白銀岳駅 シャトルバス20分", point: "森の中にひっそり佇むスタイリッシュな貸切コンテナヴィラ", 
+      desc: "デザイン性の高いコンテナを改装した、全く新しいスタイルの宿泊施設。コンパクトながらも機能的でモダンな内装が、若い世代やカップルから高い支持を集めています。",
+      amenities: ["📶 無料Wi-Fi", "📺 スマートTV", "🍳 ミニキッチン", "🅿️ 駐車場無料"],
+      time: "チェックイン: 15:00〜<br>チェックアウト: 11:00",
+      img: "宿⑥.jpeg" 
+    },
+    { 
+      name: "隠れ家リゾート 月夜見", 
+      reviews: 88, rating: 4.9, rooms: 1, tag: "プレミアム施設", station: "幻竹林駅 徒歩15分", point: "竹林にひっそり佇む完全プライベート空間", 
+      desc: "1日3組限定。外界の喧騒を完全に遮断した、大人のためのおこもりリゾート。専属のコンシェルジュが付き、誰にも邪魔されない上質なプライベートステイをお約束します。",
+      amenities: ["♨️ 客室露天風呂", "🍾 ルームサービス", "📶 無料Wi-Fi", "🚗 送迎あり"],
+      time: "チェックイン: 14:00〜<br>チェックアウト: 12:00",
+      img: "宿⑦.jpeg" 
+    },
+    { 
+      name: "ゲストハウス 山林", 
+      reviews: 230, rating: 3.5, rooms: 5, tag: "コスパ最高", station: "山里口駅 徒歩8分", point: "旅人同士の交流が生まれるアットホームなラウンジ", 
+      desc: "古民家をリノベーションした、温もりあふれるゲストハウス。広い共有ラウンジでは、夜な夜な旅人同士の語らいが生まれます。リーズナブルに長期滞在したい方におすすめです。",
+      amenities: ["📶 無料Wi-Fi", "🍳 共有キッチン", "🧺 ランドリー", "🚭 全室禁煙"],
+      time: "チェックイン: 16:00〜<br>チェックアウト: 10:00",
+      img: "宿⑧.jpeg" 
+    },
+    { 
+      name: "ペンション ピーチブロッサム", 
+      reviews: 175, rating: 4.3, rooms: 2, tag: "自家製ジャムの朝食", station: "桃源郷駅 徒歩12分", point: "四季折々の花々と手作りジャムが人気のペンション", 
+      desc: "果樹園に囲まれたメルヘンチックな洋風ペンション。オーナー手作りの焼きたてパンと、自家製フルーツジャムが並ぶ朝食が大好評。アットホームな温かいおもてなしが魅力です。",
+      amenities: ["📶 無料Wi-Fi", "☕️ フリードリンク", "🅿️ 駐車場無料", "🚭 全室禁煙"],
+      time: "チェックイン: 15:00〜<br>チェックアウト: 10:00",
+      img: "宿⑨.jpeg" 
+    },
+    { 
+      name: "森の隠れ家 グリーンテラス", 
+      reviews: 503, rating: 4.6, rooms: 1, tag: "ポイント10倍", station: "深緑渓谷駅 バス30分", point: "豊かな森の緑を借景にした温かみのあるダイニング", 
+      desc: "窓枠を額縁に見立て、美しい森の緑を一枚の絵画のように楽しめるオーベルジュ。地元の旬の野菜やジビエを使ったこだわりのコース料理を、静かな環境でじっくりと堪能できます。",
+      amenities: ["🍽 レストラン", "🍷 バーラウンジ", "📶 無料Wi-Fi", "🅿️ 駐車場無料"],
+      time: "チェックイン: 15:00〜<br>チェックアウト: 11:00",
+      img: "宿⑩.jpeg" 
+    }
+  ];
+
+  function renderStars(rating) {
+    const fullStars = Math.floor(rating);
+    let starsHtml = "";
+    for(let i=0; i<5; i++) {
+      starsHtml += (i < fullStars) ? "★" : "☆";
+    }
+    return starsHtml;
+  }
+
+  function renderHotels() {
+    const listContainer = document.getElementById("hotel-list");
+    listContainer.innerHTML = "";
+
+    hotels.forEach((hotel) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      
+      const encodedImgSrc = encodeURI("./" + hotel.img);
+      const fallbackUrl = "https://via.placeholder.com/380x460/eaeaea/888888?text=No+Image";
+      
+      // 設備アイコンのHTML生成
+      const amenitiesHtml = hotel.amenities.map(item => `<span class="amenity-badge">${item}</span>`).join("");
+
+      card.innerHTML = `
+        <div class="card-left">
+          <span class="tag">${hotel.tag}</span>
+          <img src="${encodedImgSrc}" alt="${hotel.name}の写真" onerror="this.onerror=null; this.src='${fallbackUrl}';">
+        </div>
+        
+        <div class="card-content">
+          <div class="content-header">
+            <div class="title-group">
+              <h2 class="hotel-name">${hotel.name}</h2>
+              <div class="stars">${renderStars(hotel.rating)}</div>
+            </div>
+            <div class="rating-box">
+              <span class="score-badge">${hotel.rating.toFixed(1)}</span>
+              <span class="reviews">${hotel.reviews}件の口コミ</span>
+            </div>
+          </div>
+          
+          <div class="description">
+            ${hotel.desc}
+          </div>
+          
+          <div class="amenities">
+            ${amenitiesHtml}
+          </div>
+
+          <div class="info-list">
+            <div class="info-item">📍 最寄駅：${hotel.station}</div>
+            <div class="info-item highlight">✨ ${hotel.point}</div>
+          </div>
+          
+          <div class="content-footer">
+            <div class="time-info">
+              ${hotel.time}
+            </div>
+            <div class="rooms-left">残り${hotel.rooms}部屋</div>
+          </div>
+        </div>
+      `;
+      listContainer.appendChild(card);
+    });
+  }
+
+  renderHotels();
+</script>
+</body>
+</html>
